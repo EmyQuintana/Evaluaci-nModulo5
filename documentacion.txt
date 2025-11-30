@@ -1,55 +1,38 @@
-Documentación
+## Documentación de mi Modelo de Datos de Inventario
 
-Documenta el proceso de creación del modelo de datos y las decisiones tomadas al diseñar las tablas, restricciones y relaciones entre entidades.
+### Diseño del Modelo: Estructura y Restricciones
 
-El modelo utiliza tres tablas: productos, proveedores y transacciones. Cada una tiene como su clave primaria un atributo id autoincremental.
+Mi modelo usa tres tablas: **productos**, **proveedores** y **transacciones**. Todas tienen un `id` autoincremental como clave primaria.
 
-Excepto por el atributo descripcion_producto, todos los campos de las tablas están definidos como NOT NULL, esto ya que son datos básicos para el funcionamiento del inventario.
+**Restricciones Clave:**
+1.  **NOT NULL:** Todos los campos son obligatorios (NOT NULL), excepto la `descripcion_producto`.
+2.  **UNIQUE:** El `nombre_producto` es UNIQUE para evitar duplicados.
+3.  **Relaciones (1:N):** La tabla **transacciones** conecta productos y proveedores (una transacción registra un producto y un proveedor/cliente).
+4.  **Integridad:** Usé **FOREIGN KEYs** con **ON DELETE RESTRICT**. Esto garantiza que no puedo eliminar un producto o proveedor si ya tiene transacciones registradas en mi historial.
 
-La descripción del producto no es obligatoria, y los productos pueden ser diferenciados por su nombre (nombre_producto), que tiene la restricción UNIQUE para evitar duplicados.
+### Normalización Aplicada (3NF)
 
-Las relaciones entre las tablas son de uno a muchos (1:N), siendo la tabla transacciones la tabla intermedia que las conecta. Un proveedor puede tener muchas transacciones e igualmente un producto puede tener muchas transacciones. Se implementaron restricciones FOREIGN KEY con ON DELETE RESTRICT para mantener la integridad, evitando la eliminación de registros padre que ya están referenciados.
+Apliqué la normalización hasta la **Tercera Forma Normal (3NF)**.
 
-Incluye una breve explicación de la normalización aplicada en el modelo de datos y su impacto en la estructura de la base de datos.
+* **Explicación:** Separé las entidades principales (`productos` y `proveedores`) y las conecté usando solo sus IDs en `transacciones`.
+* **Impacto:** Evito la **redundancia de datos** (no repito el nombre del proveedor en cada transacción) y aseguro la **coherencia** de la información en toda la base.
 
-El modelo de datos aplica principios de normalización hasta la Tercera Forma Normal (3NF) para garantizar la integridad y evitar la redundancia de datos.
+### Ejemplos de Consultas SQL
 
-Cada entidad principal (productos y proveedores) tiene su propia tabla con un identificador único, y se relacionan entre sí a través de claves foráneas presentes solo en la tabla transacciones.
+#### 1. Cálculo de Ventas Consolidadas
 
-Esto evita la redundancia de datos, mejora la integridad de la información y facilita el mantenimiento del sistema.
+```sql
+-- Calcula el total vendido por cada producto
+SELECT 
+    p.nombre_producto, 
+    SUM(t.cantidad_producto) AS cantidad_vendida, 
+    SUM(t.cantidad_producto * p.precio_producto) AS total_venta
+FROM 
+    productos p
+JOIN 
+    transacciones t ON p.id_producto = t.id_producto
+WHERE 
+    t.tipo_transaccion = 'venta'
+GROUP BY 
+    p.nombre_producto;
 
-Discusión sobre Desnormalización:
-Aunque el modelo está normalizado, la desnormalización puede ser útil en escenarios de alta demanda de reportes. Si se requiriera calcular constantemente el valor monetario exacto de cada transacción (compra o venta), podría considerarse añadir el campo **precio_transaccion** a la tabla **transacciones**. Esto introduce una redundancia controlada, pero **elimina la necesidad de un JOIN** a la tabla **productos** para cada consulta de reporte histórico, mejorando significativamente el rendimiento de las consultas analíticas. Además, asegura que los registros históricos no cambien si el precio actual del producto se modifica.
-
-Presenta ejemplos de las consultas SQL utilizadas y explica cómo funcionan.
-
-Ejemplos de consultas SQL:
-
-    1. Consulta de agrupación (Archivo consultas_basicas_inventario.sql):
-
-    -- selecciona el nombre del producto, y calcula la cantidad total vendida y el total generado por ventas
-    SELECT p.nombre_producto, SUM(t.cantidad_producto) AS cantidad_vendida, SUM(t.cantidad_producto*p.precio_producto) AS total_venta
-    -- indica la tabla principal para la obtencion de datos
-    FROM productos p
-    -- se une la tabla transacciones por medio del id para obtener los datos de venta por producto
-    JOIN transacciones t ON p.id_producto = t.id_producto
-    -- filtra las transacciones por el tipo 'venta'
-    WHERE t.tipo_transaccion = 'venta'
-    -- agrupa los resultados con el nombre del producto
-    GROUP BY p.nombre_producto;
-
-    2. Consulta Compleja con JOINs (Archivo consultas_complejas_inventario.sql):
-
-    -- selecciona los datos listados
-    SELECT p.nombre_producto, t.cantidad_producto, t.fecha_transaccion, pr.nombre_proveedor
-    -- indica el lugar principal para la obtencion de datos
-    FROM transacciones t
-    -- se une la tabla productos por medio del id para obtener el nombre_producto
-    JOIN productos p ON t.id_producto = p.id_producto
-    -- se une la tabla proveedores por medio del id para obtener nombre_proveedor
-    JOIN proveedores pr ON t.id_proveedor = pr.id_proveedor
-    -- filtra por transacciones que solo sean de tipo venta
-    -- Nota: En este ejemplo se usó una fecha fija, pero en el archivo SQL se implementó de forma dinámica (ej. último mes o año).
-    WHERE t.tipo_transaccion = 'venta' AND fecha_transaccion BETWEEN '2024-01-01' AND '2024-01-31'
-    -- se ordenan de manera ascendente basandose en la fecha de la transaccion
-    ORDER BY t.fecha_transaccion ASC;
