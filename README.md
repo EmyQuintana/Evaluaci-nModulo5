@@ -1,47 +1,49 @@
-EVALUACION DE MODULO 5 - PROYECTO: GESTIÓN INTELIGENTE DE INVENTARIO DE SKINCARE
+🚀 EVALUACIÓN DE MÓDULO 5: GESTIÓN MAESTRA DE INVENTARIO SKINCARE
 
-Este proyecto presenta un sistema de gestión de inventario, diseñado específicamente para una empresa de ventas de productos de cuidado de la piel (skincare). Utiliza un Sistema Gestor de Bases de Datos Relacionales (RDBMS) para almacenar, consultar y administrar de manera eficiente la información crítica sobre Productos, Proveedores y Transacciones.
+Este proyecto presenta un Sistema de Gestión de Inventario Inteligente, diseñado específicamente para una empresa de ventas de productos de cuidado de la piel (skincare). El sistema utiliza un RDBMS para la administración crítica de Productos, Proveedores y Transacciones.
 
-El objetivo principal es asegurar la integridad de los datos y la atomicidad en las operaciones de compra y venta, garantizando que el inventario se mantenga siempre preciso.
+El enfoque principal es garantizar la integridad de los datos y la atomicidad en todas las operaciones de negocio (compras y ventas), asegurando que la información de inventario sea siempre precisa y confiable.
 
-El diseño del sistema se basa en un modelo Entidad-Relación normalizado a la Tercera Forma Normal (3NF), lo que minimiza la redundancia y maximiza la coherencia.
+📐 ESTRUCTURA SÓLIDA: MODELO RELACIONAL Y REGLAS DE ORO
+El diseño de la base de datos está normalizado hasta la Tercera Forma Normal (3NF), minimizando la redundancia y optimizando la coherencia.
 
-Seimplementaron restricciones estrictas para asegurar la calidad de los datos:
+Restricciones Esenciales de Integridad
+Se implementaron controles estrictos para garantizar la calidad y validez de los datos:
 
-Claves Foráneas (FOREIGN KEY): Establecidas con la regla ON DELETE RESTRICT en la tabla transacciones para evitar la eliminación accidental de un producto o proveedor si existen registros históricos asociados.
+    Atomicidad y Precisión Monetaria: El campo precio_producto utiliza DECIMAL(10, 2) para garantizar la exactitud en los cálculos financieros, evitando errores de punto flotante.
 
-Precisión Monetaria: El campo precio_producto utiliza el tipo de dato DECIMAL(10, 2) en lugar de FLOAT para garantizar la exactitud en los cálculos financieros.
+    Integridad Referencial: Las Claves Foráneas (FOREIGN KEY) en la tabla transacciones se establecieron con la regla ON DELETE RESTRICT. Esto prohíbe la eliminación de un producto o proveedor si existen registros históricos asociados, protegiendo así el historial de transacciones.
 
-Validación de Inventario: Se usa la restricción CHECK para asegurar que la cantidad_inventario nunca sea negativa y que la cantidad de producto en una transacción sea siempre mayor a cero.
+    Validación de Dominio: Se aplica la restricción CHECK para asegurar que la cantidad_inventario nunca sea negativa y que la cantidad de producto en una transacción sea siempre mayor a cero.
 
-Para garantizar que la actualización de inventario y el registro de la transacción sean una operación única e indivisible, se utilizan Procedimientos Almacenados y comandos transaccionales:
+⚡ AUTOMATIZACIÓN AVANZADA: TRANSACCIONES ATÓMICAS
+Para que la actualización de inventario y el registro de la transacción sean operaciones únicas e indivisibles, se utilizan Procedimientos Almacenados y control explícito de transacciones:
 
-registrar_compra: Usa BEGIN TRANSACTION y COMMIT para sumar unidades al inventario y registrar la compra simultáneamente. Incluye validaciones para la existencia de producto/proveedor y usa ROLLBACK en caso de error.
+    registrar_compra: Utiliza BEGIN TRANSACTION y COMMIT para sumar unidades al inventario y registrar la compra. Incorpora validaciones y usa ROLLBACK si el producto o proveedor no existe.
 
-registrar_venta: Incluye una validación de stock. Si el stock_actual es insuficiente para la cantidad_producto, la transacción se anula mediante ROLLBACK, evitando inventarios negativos.
+    registrar_venta: Incluye una validación de stock preventiva. Si el stock_actual es insuficiente para la cantidad solicitada, la transacción se anula inmediatamente mediante ROLLBACK, garantizando que el inventario nunca caiga por debajo de cero.
 
-Instrucciones de Implementación y Ejecución
-Para poner en marcha el sistema, siga los siguientes pasos en su cliente de MySQL/MariaDB (como MySQL Workbench o VS Code con extensión SQL):
+📊 REQUISITOS DEL PROYECTO: DETALLE DE IMPLEMENTACIÓN
+I. Diseño y Estructura
+Diseño del Modelo Relacional: Se tradujo el modelo Entidad-Relación (ER) a las tablas Productos, Proveedores y Transacciones, asegurando la identificación de claves primarias y foráneas.
 
-1. Configuración del Esquema (DDL)
-Ejecutar tablas_inventario.sql: Ejecute este script completo para crear la base de datos inventario y las tres tablas (productos, proveedores, transacciones). Este script también inserta los datos iniciales.
+Normalización y Desnormalización: Las tablas cumplen con 3NF. Se incluyó una discusión sobre el uso potencial de desnormalización (ej. añadir precio_transaccion a la tabla de transacciones) para optimizar el rendimiento de los reportes históricos.
 
-2. Poblar y Demostrar Manipulación (DML)
-Ejecutar DML_inventario.sql: Ejecute este script para:
+Manejo de Restricciones: Implementación de restricciones CHECK y NOT NULL en campos clave para validar la calidad de los datos.
 
-Insertar productos y proveedores adicionales.
+II. Creación de la Base de Datos y Tablas (DDL)
+Utilización de SQL para crear las tablas, definiendo correctamente los tipos de dato (ej. DECIMAL para precios) y las restricciones (NOT NULL, PRIMARY KEY, FOREIGN KEY).
 
-Ver demostraciones de actualización de inventario (suma y resta de unidades) y de eliminación segura de un producto que no infrinja la integridad referencial.
+III. Manipulación y Consultas Básicas (DML)
+Manipulación de Datos (DML): Inserción de datos iniciales en las tres tablas, junto con la demostración de la actualización de inventario y la eliminación segura de productos.
 
-3. Implementar y Probar la Atomicidad (Transacciones)
-Ejecutar transacciones_SQL_inventario.sql: Ejecute este script para definir los procedimientos almacenados registrar_compra y registrar_venta.
+Consultas Básicas: Se realizaron consultas para recuperar productos disponibles, proveedores por producto y transacciones por fecha.
 
-Pruebas de CALL: Ejecute las llamadas de ejemplo (CALL registrar_compra... y CALL registrar_venta...) incluidas al final del script para verificar la funcionalidad: observe cómo las llamadas exitosas aplican el COMMIT y cómo las llamadas fallidas (ej. stock insuficiente) aplican el ROLLBACK.
+Funciones de Agrupación: Uso de COUNT() y SUM() para calcular el total de unidades vendidas y el valor total de las compras.
 
-4. Ejecutar Consultas para Reportes
-Ejecutar consultas_basicas_inventario.sql: Pruebe las consultas básicas, incluyendo las funciones de agregación.
+IV. Consultas Complejas
+Reporte Dinámico: Consulta que recupera el total de ventas de un producto durante el mes anterior, utilizando funciones de fecha dinámicas.
 
-Ejecutar consultas_complejas_inventario.sql: Pruebe las consultas avanzadas, especialmente las dinámicas de fechas, para validar el análisis de reportes.
+Uniones Avanzadas: Uso de JOINs (INNER, LEFT) para relacionar información entre las tres tablas.
 
-5. Documentación del Diseño
-El archivo documentacion.txt contiene el informe detallado sobre el diseño de las tablas, las decisiones de normalización y la explicación de las consultas clave utilizadas en el sistema.
+Subconsultas: Implementación de consultas anidadas (subqueries) para obtener productos que no han sido vendidos durante un periodo determinado.
